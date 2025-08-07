@@ -5,9 +5,10 @@ import {
 } from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import generatedShader from './spCode.sp';
+import { InputManager } from './inputManager.js';
+import { DebugUI } from './debugUI.js';
 
 let scene = new Scene();
-
 let camera = new PerspectiveCamera( 70, window.innerWidth/window.innerHeight, 0.1, 100 );
 camera.position.z = 2;
 
@@ -17,6 +18,10 @@ renderer.setPixelRatio( window.devicePixelRatio );
 
 renderer.setClearColor( new Color(1, 1, 1), 1 );
 document.body.appendChild( renderer.domElement );
+
+// Initialize input manager and debug UI
+const inputManager = new InputManager();
+const debugUI = new DebugUI(inputManager);
 
 function uniformDescriptionToThreeJSFormat(rawUniforms) {
   const vectorConstructors = {
@@ -52,11 +57,38 @@ let controls = new OrbitControls( camera, renderer.domElement, {
 
 let render = () => {
   requestAnimationFrame( render );
+  
+  // Update input manager
+  inputManager.updateSensorData();
+  
+  // Update time
   material.uniforms.time.value += 0.015;
-  // you can update custom "input" unifoms defined in the shader like this
+  
+  // Get all input data
+  const inputData = inputManager.getInputData();
+  
+  // Update all shader uniforms
+  Object.keys(inputData).forEach(key => {
+    if (material.uniforms[key]) {
+      material.uniforms[key].value = inputData[key];
+    }
+  });
+  
+  // Legacy input for compatibility
   material.uniforms.exampleExternalInput.value = Math.sin(material.uniforms.time.value);
+  
   controls.update();
   renderer.render( scene, camera );
+  
+  // Update debug UI
+  debugUI.updateUI();
 };
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
 
 render();
