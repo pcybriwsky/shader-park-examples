@@ -329,7 +329,7 @@ export class DebugUI {
         sensor.min,
         sensor.max,
         sensor.step,
-        (this.inputManager.manualControls[sensor.key] ?? 0.5),
+        this.inputManager.manualControls[sensor.key],
         (value) => this.inputManager.updateManualControl(sensor.key, value)
       );
       section.appendChild(sliderContainer);
@@ -337,6 +337,7 @@ export class DebugUI {
   }
   
   createAnimationSection(container) {
+    
     const section = this.createSection('Animation Controls', container);
     
     const animations = [
@@ -465,22 +466,22 @@ export class DebugUI {
       
       // Ensure all values are numbers with fallbacks
       const safeInputData = {
-        mouseX: inputData.mouseX ?? 0,
-        mouseY: inputData.mouseY ?? 0,
-        mousePressed: inputData.mousePressed ?? 0
+        mouseX: inputData.mouseX || 0,
+        mouseY: inputData.mouseY || 0,
+        mousePressed: inputData.mousePressed || 0
       };
       
       const safeSensorData = {
-        light: sensorData.light ?? 0.5,
-        temperature: sensorData.temperature ?? 0.5,
-        humidity: sensorData.humidity ?? 0.5,
-        pressure: sensorData.pressure ?? 0.5,
-        aqi: sensorData.aqi ?? 0.5,
-        co2: sensorData.co2 ?? 0.5,
-        sound: sensorData.sound ?? 0.5,
-        colorR: sensorData.colorR ?? 0.5,
-        colorG: sensorData.colorG ?? 0.5,
-        colorB: sensorData.colorB ?? 0.5
+        light: sensorData.light || 0.5,
+        temperature: sensorData.temperature || 0.5,
+        humidity: sensorData.humidity || 0.5,
+        pressure: sensorData.pressure || 0.5,
+        aqi: sensorData.aqi || 0.5,
+        co2: sensorData.co2 || 0.5,
+        sound: sensorData.sound || 0.5,
+        colorR: sensorData.colorR || 0.5,
+        colorG: sensorData.colorG || 0.5,
+        colorB: sensorData.colorB || 0.5
       };
       
       // Convert normalized values back to raw values

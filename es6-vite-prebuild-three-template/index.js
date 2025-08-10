@@ -43,42 +43,6 @@ statusOverlay.style.cssText = `
 `;
 document.body.appendChild(statusOverlay);
 
-// Screenshot functionality
-function takeScreenshot() {
-  // Hide UI elements temporarily
-  const debugUI = document.getElementById('debug-ui');
-  const statusOverlay = document.getElementById('status-overlay');
-  
-  const originalDebugDisplay = debugUI ? debugUI.style.display : 'none';
-  const originalStatusDisplay = statusOverlay ? statusOverlay.style.display : 'none';
-  
-  if (debugUI) debugUI.style.display = 'none';
-  if (statusOverlay) statusOverlay.style.display = 'none';
-  
-  // Create a canvas to capture the renderer
-  const canvas = renderer.domElement;
-  const dataURL = canvas.toDataURL('image/png');
-  
-  // Create download link
-  const link = document.createElement('a');
-  link.download = `shaderpark-screenshot-${Date.now()}.png`;
-  link.href = dataURL;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  // Restore UI elements
-  if (debugUI) debugUI.style.display = originalDebugDisplay;
-  if (statusOverlay) statusOverlay.style.display = originalStatusDisplay;
-}
-
-// Add keyboard listener for screenshot
-document.addEventListener('keydown', (event) => {
-  if (event.key === 's' || event.key === 'S') {
-    takeScreenshot();
-  }
-});
-
 function uniformDescriptionToThreeJSFormat(rawUniforms) {
   const vectorConstructors = {
     float: v => v,

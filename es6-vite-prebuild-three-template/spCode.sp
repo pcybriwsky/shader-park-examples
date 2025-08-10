@@ -39,11 +39,10 @@ let s = getSpace()
 let scale = pressure * 2 + 0.5
 
 
-// Generate noise with gyroid influence - FIXED for consistency
+// Generate noise with gyroid influence
 const noiseScale = 20
 const gyScale = 10 + pressure * 1 // Pressure affects gyroid scale
-// Use fixed offset instead of time-based animation for consistent results
-let n = vectorContourNoise(getSpace()*1 + vec3(0, 0, 1.0), 1, 1.2)
+let n = vectorContourNoise(getSpace()*1 + vec3(0, 0, sin(time*animationSpeed*0.5)*2), 1, 1.2)
 // n = pow(sin(n*2)*.5 +.5, vec3(2))
 
 // Create detected color as vec3 - pure color without boosting
@@ -69,9 +68,8 @@ sphere(0.6 + n.y * 0.002)
 // difference()
 // setSDF(gy)
 
-// Add expansion based on humidity - FIXED for consistency
-// Use fixed position instead of time-based animation
-let pos = vec3(0.5, 0.3, 0.7) // Fixed values for consistent results
+// Add expansion based on humidity
+let pos = vec3(sin(time*animationSpeed), cos(time*animationSpeed), sin(time*animationSpeed))
 let expansionNoise = noise(getSpace() * 0.8 + pos) * 0.5
-let expansionAmount = expansionNoise * (sound + 0.35) * 1.5
+let expansionAmount = expansionNoise * (sound + 0.35) * 1.5 // replace with noise
 expand(expansionAmount)
