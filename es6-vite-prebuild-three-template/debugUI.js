@@ -13,7 +13,8 @@ export class InputManager {
       humidity: 0.5,
       pressure: 0.5,
       aqi: 0.5,
-      co2: 0.5
+      co2: 0.5,
+      sound: 0.5
     };
     
     // Mouse/touch data
@@ -34,7 +35,8 @@ export class InputManager {
       humidity: 0.5,
       pressure: 0.5,
       aqi: 0.5,
-      co2: 0.5
+      co2: 0.5,
+      sound: 0.5
     };
     
     this.setupEventListeners();
@@ -107,6 +109,9 @@ export class InputManager {
       if (magic.modules.co2) {
         this.sensorData.co2 = magic.modules.co2.co2 / 2000; // Normalize
       }
+      if (magic.modules.sound) {
+        this.sensorData.sound = magic.modules.sound.volume / 100; // Normalize
+      }
     } else {
       // Use manual controls in dev mode
       console.log(this.sensorData);
@@ -133,20 +138,14 @@ export class InputManager {
   getInputData() {
     console.log(this.sensorData);
     return {
-    // Magic sensor data
-    // 
-    // 
-    // 
-    // 
-    // 
-    // 
-    // 
+          // Magic sensor data
       light: this.sensorData.light,
       temperature: this.sensorData.temperature,
       humidity: this.sensorData.humidity,
       pressure: this.sensorData.pressure,
       aqi: this.sensorData.aqi,
       co2: this.sensorData.co2,
+      sound: this.sensorData.sound,
       
       // Mouse data
       mouseX: this.mouseData.x,
@@ -316,7 +315,11 @@ export class DebugUI {
       { key: 'humidity', label: 'Humidity', min: 0, max: 1, step: 0.01 },
       { key: 'pressure', label: 'Pressure', min: 0, max: 1, step: 0.01 },
       { key: 'aqi', label: 'AQI', min: 0, max: 1, step: 0.01 },
-      { key: 'co2', label: 'CO2', min: 0, max: 1, step: 0.01 }
+      { key: 'co2', label: 'CO2', min: 0, max: 1, step: 0.01 },
+      { key: 'sound', label: 'Sound', min: 0, max: 1, step: 0.01 },
+      { key: 'colorR', label: 'Color R', min: 0, max: 1, step: 0.01 },
+      { key: 'colorG', label: 'Color G', min: 0, max: 1, step: 0.01 },
+      { key: 'colorB', label: 'Color B', min: 0, max: 1, step: 0.01 }
     ];
     
     sensors.forEach(sensor => {
@@ -326,7 +329,7 @@ export class DebugUI {
         sensor.min,
         sensor.max,
         sensor.step,
-        this.inputManager.manualControls[sensor.key],
+        (this.inputManager.manualControls[sensor.key] ?? 0.5),
         (value) => this.inputManager.updateManualControl(sensor.key, value)
       );
       section.appendChild(sliderContainer);
@@ -411,7 +414,7 @@ export class DebugUI {
     
     const valueSpan = document.createElement('span');
     valueSpan.id = `value-${key}`;
-    valueSpan.textContent = initialValue.toFixed(3);
+    valueSpan.textContent = typeof initialValue === 'number' ? initialValue.toFixed(3) : initialValue;
     valueSpan.style.cssText = `
       font-family: monospace;
       font-size: 10px;
@@ -458,10 +461,57 @@ export class DebugUI {
     const mouseData = document.getElementById('mouse-data');
     if (mouseData) {
       const inputData = this.inputManager.getInputData();
+      const sensorData = this.inputManager.sensorData;
+      
+      // Ensure all values are numbers with fallbacks
+      const safeInputData = {
+        mouseX: inputData.mouseX ?? 0,
+        mouseY: inputData.mouseY ?? 0,
+        mousePressed: inputData.mousePressed ?? 0
+      };
+      
+      const safeSensorData = {
+        light: sensorData.light ?? 0.5,
+        temperature: sensorData.temperature ?? 0.5,
+        humidity: sensorData.humidity ?? 0.5,
+        pressure: sensorData.pressure ?? 0.5,
+        aqi: sensorData.aqi ?? 0.5,
+        co2: sensorData.co2 ?? 0.5,
+        sound: sensorData.sound ?? 0.5,
+        colorR: sensorData.colorR ?? 0.5,
+        colorG: sensorData.colorG ?? 0.5,
+        colorB: sensorData.colorB ?? 0.5
+      };
+      
+      // Convert normalized values back to raw values
+      const rawTemp = (safeSensorData.temperature * 50) - 10; // Convert back to °C
+      const rawHumidity = (safeSensorData.humidity * 60) + 30; // Convert back to %
+      const rawPressure = (safeSensorData.pressure * 60) + 980; // Convert back to hPa
+      const rawAQI = safeSensorData.aqi * 200; // Convert back to AQI
+      const rawCO2 = (safeSensorData.co2 * 600) + 400; // Convert back to ppm
+      const rawLight = (1 - safeSensorData.light) * 4095; // Convert back to brightness
+      const rawSound = safeSensorData.sound * 100; // Convert back to volume level
+      
+      // Convert color values to hex
+      const colorR = Math.round(safeSensorData.colorR * 255);
+      const colorG = Math.round(safeSensorData.colorG * 255);
+      const colorB = Math.round(safeSensorData.colorB * 255);
+      const hexColor = `#${colorR.toString(16).padStart(2, '0')}${colorG.toString(16).padStart(2, '0')}${colorB.toString(16).padStart(2, '0')}`;
+      
       mouseData.innerHTML = `
-        <div>X: ${inputData.mouseX.toFixed(3)}</div>
-        <div>Y: ${inputData.mouseY.toFixed(3)}</div>
-        <div>Pressed: ${inputData.mousePressed > 0.5 ? 'Yes' : 'No'}</div>
+        <div>Mouse X: ${safeInputData.mouseX.toFixed(3)}</div>
+        <div>Mouse Y: ${safeInputData.mouseY.toFixed(3)}</div>
+        <div>Pressed: ${safeInputData.mousePressed > 0.5 ? 'Yes' : 'No'}</div>
+        <div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
+          <div style="color: #4CAF50;">Light: ${safeSensorData.light.toFixed(3)} (${rawLight.toFixed(0)} lux)</div>
+          <div style="color: #2196F3;">Temp: ${safeSensorData.temperature.toFixed(3)} (${rawTemp.toFixed(1)}°C)</div>
+          <div style="color: #00BCD4;">Humidity: ${safeSensorData.humidity.toFixed(3)} (${rawHumidity.toFixed(1)}%)</div>
+          <div style="color: #9C27B0;">Pressure: ${safeSensorData.pressure.toFixed(3)} (${rawPressure.toFixed(0)} hPa)</div>
+          <div style="color: #FF9800;">AQI: ${safeSensorData.aqi.toFixed(3)} (${rawAQI.toFixed(0)})</div>
+          <div style="color: #F44336;">CO2: ${safeSensorData.co2.toFixed(3)} (${rawCO2.toFixed(0)} ppm)</div>
+          <div style="color: #E91E63;">Sound: ${safeSensorData.sound.toFixed(3)} (${rawSound.toFixed(1)} dB)</div>
+          <div style="color: ${hexColor}; border: 1px solid #666; padding: 2px 4px; border-radius: 3px; display: inline-block; margin-top: 4px;">Color: ${safeSensorData.colorR.toFixed(3)}, ${safeSensorData.colorG.toFixed(3)}, ${safeSensorData.colorB.toFixed(3)} (${hexColor})</div>
+        </div>
       `;
     }
   }

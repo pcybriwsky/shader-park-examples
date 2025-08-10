@@ -9,6 +9,25 @@
     <link rel="stylesheet" href="/style.css">
   </head>  
   <body>
-    <script src="./index.js" type="module"></script>
+    <script>
+      // Simple routing
+      if (window.location.pathname === '/twist') {
+        // Load P5.js and twist sketch
+        const p5Script = document.createElement('script');
+        p5Script.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js';
+        p5Script.onload = function() {
+          const twistScript = document.createElement('script');
+          twistScript.src = './twist-p5.js';
+          document.body.appendChild(twistScript);
+        };
+        document.head.appendChild(p5Script);
+      } else {
+        // Load the main Shader Park app
+        const mainScript = document.createElement('script');
+        mainScript.src = './index.js';
+        mainScript.type = 'module';
+        document.body.appendChild(mainScript);
+      }
+    </script>
   </body>
 </html>

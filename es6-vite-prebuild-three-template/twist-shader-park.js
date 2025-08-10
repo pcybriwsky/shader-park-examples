@@ -4,7 +4,7 @@ import {
   SphereGeometry, ShaderMaterial, BackSide
 } from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import generatedShader from './spCode.sp';
+import generatedShader from './twistShader.sp';
 import { InputManager } from './inputManager.js';
 import { DebugUI } from './debugUI.js';
 
@@ -22,26 +22,6 @@ document.body.appendChild( renderer.domElement );
 // Initialize input manager and debug UI
 const inputManager = new InputManager();
 const debugUI = new DebugUI(inputManager);
-
-// Create status overlay
-const statusOverlay = document.createElement('div');
-statusOverlay.id = 'status-overlay';
-statusOverlay.style.cssText = `
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 16px;
-  border-radius: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 12px;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  min-width: 200px;
-`;
-document.body.appendChild(statusOverlay);
 
 function uniformDescriptionToThreeJSFormat(rawUniforms) {
   const vectorConstructors = {
@@ -102,69 +82,13 @@ let render = () => {
   
   // Update debug UI
   debugUI.updateUI();
-  
-  // Update status overlay
-  updateStatusOverlay(inputData);
 };
-
-function updateStatusOverlay(inputData) {
-  const isMagic = inputData.isMagic > 0.5;
-  const soundLevel = Math.round(inputData.sound * 100);
-  const colorR = Math.round(inputData.colorR * 255);
-  const colorG = Math.round(inputData.colorG * 255);
-  const colorB = Math.round(inputData.colorB * 255);
-  const hexColor = `#${colorR.toString(16).padStart(2, '0')}${colorG.toString(16).padStart(2, '0')}${colorB.toString(16).padStart(2, '0')}`;
-  
-  statusOverlay.innerHTML = `
-    <div style="margin-bottom: 8px;">
-      <strong>Magic Status:</strong> 
-      <span style="color: ${isMagic ? '#4CAF50' : '#f44336'}">
-        ${isMagic ? 'Connected' : 'Disconnected'}
-      </span>
-    </div>
-    <div style="margin-bottom: 8px;">
-      <strong>Sound Level:</strong> ${soundLevel}%
-    </div>
-    <div style="margin-bottom: 12px;">
-      <strong>Current Color:</strong>
-      <div style="
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        background: ${hexColor};
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 3px;
-        margin-left: 8px;
-        vertical-align: middle;
-      "></div>
-      <span style="margin-left: 8px; font-family: monospace;">${hexColor}</span>
-    </div>
-    ${!isMagic ? `
-      <div style="
-        font-size: 11px;
-        color: #FFD700;
-        background: rgba(255, 215, 0, 0.1);
-        padding: 8px;
-        border-radius: 4px;
-        border-left: 3px solid #FFD700;
-      ">
-        💡 Hold colored objects close (1 inch) to the light sensor to detect colors
-      </div>
-    ` : ''}
-  `;
-}
 
 // Handle window resize
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  
-  // Reposition status overlay if needed
-  if (statusOverlay) {
-    statusOverlay.style.right = '20px';
-    statusOverlay.style.bottom = '20px';
-  }
 });
 
-render();
+render(); 

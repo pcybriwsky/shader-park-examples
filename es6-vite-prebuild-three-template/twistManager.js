@@ -156,7 +156,7 @@ export class InputManager {
     }
 
     if (magic.modules.sound && magic.modules.sound.raw.volume !== undefined) {
-      this.sensorData.sound = 0.95 * this.sensorData.sound + 0.05 * (magic.modules.sound.raw.volume / 2000);
+      this.sensorData.sound = 0.90 * this.sensorData.sound + 0.1 * (magic.modules.sound.raw.volume / 4095);
     }
     
     // Process color sensor data
@@ -170,10 +170,9 @@ export class InputManager {
       this.sensorData = { ...this.manualControls };
       
       // In dev mode, use manual color controls instead of cycling
-      // Use nullish coalescing so 0.0 is preserved and not replaced by the fallback
-      this.sensorData.colorR = this.manualControls.colorR ?? 0.5;
-      this.sensorData.colorG = this.manualControls.colorG ?? 0.5;
-      this.sensorData.colorB = this.manualControls.colorB ?? 0.5;
+      this.sensorData.colorR = this.manualControls.colorR || 0.5;
+      this.sensorData.colorG = this.manualControls.colorG || 0.5;
+      this.sensorData.colorB = this.manualControls.colorB || 0.5;
     }
     
     // Apply color easing (only when not in dev mode)
@@ -321,7 +320,15 @@ export class InputManager {
     return baseColor;
   }
   
-  getInputData() {    
+  getInputData() {
+    // Debug color values
+    console.log('Color values:', {
+      colorR: this.sensorData.colorR,
+      colorG: this.sensorData.colorG,
+      colorB: this.sensorData.colorB,
+      currentColor: this.currentColor,
+      targetColor: this.targetColor
+    });
     
     return {
       // Magic sensor data
@@ -337,7 +344,6 @@ export class InputManager {
       colorR: this.sensorData.colorR,
       colorG: this.sensorData.colorG,
       colorB: this.sensorData.colorB,
-
       
       // Mouse data
       mouseX: this.mouseData.x,
@@ -376,3 +382,11 @@ export class InputManager {
     }
   }
 } 
+
+// Expose a global manager instance for non-module consumers (e.g., p5 sketch)
+if (typeof window !== 'undefined') {
+  // Avoid overwriting if already present
+  if (!window.twistManager) {
+    window.twistManager = new InputManager();
+  }
+}
